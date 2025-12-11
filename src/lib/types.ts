@@ -27,4 +27,11 @@ export type Prospect = {
   lastContacted: string | null;
   onlinePresence: string;
   avatar: string;
+  userId: string;
+};
+
+export type UserProfile = {
+  id: string;
+  email: string;
+  name: string;
 };

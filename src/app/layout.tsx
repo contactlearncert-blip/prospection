@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'ProspectZen',
@@ -24,7 +25,7 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-body antialiased')}>
-        {children}
+        <FirebaseClientProvider>{children}</FirebaseClientProvider>
         <Toaster />
       </body>
     </html>

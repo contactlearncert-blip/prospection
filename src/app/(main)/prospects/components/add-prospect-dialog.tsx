@@ -14,20 +14,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, UserPlus, FileSearch, Loader2, Frown, Sparkles } from 'lucide-react';
-import { evaluateProspectAction } from '../actions';
+import { evaluateProspectAction, addProspectAction } from '../actions';
 import type { EvaluateProspectOutput } from '@/ai/flows/automated-prospect-evaluation';
 import { industries, type Industry } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useUser } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 type Step = 'initial' | 'loading' | 'result' | 'form';
 
 export function AddProspectDialog() {
+  const { user } = useUser();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>('initial');
-  const [industry, setIndustry] = useState('');
+  const [industry, setIndustry] = useState<Industry | ''>('');
   const [onlinePresence, setOnlinePresence] = useState('');
   const [evaluationResult, setEvaluationResult] = useState<EvaluateProspectOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Form state
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+  const [email, setEmail] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
 
   const handleEvaluation = async () => {
     if (!industry || !onlinePresence) {
@@ -46,12 +57,51 @@ export function AddProspectDialog() {
     }
   };
 
+  const handleSaveProspect = async () => {
+    if (!user || !name || !company || !email) {
+        toast({
+            variant: "destructive",
+            title: "Champs requis",
+            description: "Veuillez remplir tous les champs du formulaire.",
+        });
+        return;
+    }
+    setIsSaving(true);
+    try {
+        await addProspectAction({
+            name,
+            company,
+            contact: { email },
+            industry,
+            onlinePresence,
+            avatar: `https://picsum.photos/seed/${Math.random()}/100/100`, // Placeholder
+        }, user.uid);
+
+        toast({
+            title: "Prospect ajouté",
+            description: `${name} a été ajouté à votre liste.`,
+        });
+        handleOpenChange(false);
+    } catch(err) {
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Impossible d'enregistrer le prospect. Veuillez réessayer.",
+        });
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
   const resetState = () => {
     setStep('initial');
     setIndustry('');
     setOnlinePresence('');
     setEvaluationResult(null);
     setError(null);
+    setName('');
+    setCompany('');
+    setEmail('');
   };
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -83,7 +133,7 @@ export function AddProspectDialog() {
                 <Label htmlFor="industry" className="text-right">
                   Industrie
                 </Label>
-                <Select onValueChange={setIndustry}>
+                <Select onValueChange={(val) => setIndustry(val as Industry)}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Sélectionnez une industrie" />
                   </SelectTrigger>
@@ -107,7 +157,7 @@ export function AddProspectDialog() {
               {error && <p className="text-sm text-destructive col-span-4 text-center">{error}</p>}
             </div>
             <DialogFooter>
-              <Button onClick={handleEvaluation}>Évaluer</Button>
+              <Button onClick={handleEvaluation} disabled={!industry || !onlinePresence}>Évaluer</Button>
             </DialogFooter>
           </>
         )}
@@ -148,20 +198,23 @@ export function AddProspectDialog() {
              <div className="grid gap-4 py-4">
                <div className="grid grid-cols-4 items-center gap-4">
                  <Label htmlFor="name" className="text-right">Nom</Label>
-                 <Input id="name" className="col-span-3" />
+                 <Input id="name" value={name} onChange={e => setName(e.target.value)} className="col-span-3" />
                </div>
                <div className="grid grid-cols-4 items-center gap-4">
                  <Label htmlFor="company" className="text-right">Entreprise</Label>
-                 <Input id="company" className="col-span-3" />
+                 <Input id="company" value={company} onChange={e => setCompany(e.target.value)} className="col-span-3" />
                </div>
                <div className="grid grid-cols-4 items-center gap-4">
                  <Label htmlFor="email" className="text-right">Email</Label>
-                 <Input id="email" type="email" className="col-span-3" />
+                 <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="col-span-3" />
                </div>
              </div>
              <DialogFooter>
                 <Button variant="outline" onClick={() => setStep('result')}>Retour à l'évaluation</Button>
-               <Button onClick={() => handleOpenChange(false)}>Enregistrer le prospect</Button>
+               <Button onClick={handleSaveProspect} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Enregistrer
+               </Button>
              </DialogFooter>
            </>
         )}

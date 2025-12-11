@@ -13,6 +13,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Sparkles, Send } from 'lucide-react';
 import type { Prospect } from '@/lib/types';
 import { generateMessageAction } from '../actions';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface SendMessageDialogProps {
   open: boolean;
@@ -26,6 +28,7 @@ export function SendMessageDialog({ open, onOpenChange, prospect, onMessageSent 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSending, startSending] = useTransition();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
@@ -52,8 +55,12 @@ export function SendMessageDialog({ open, onOpenChange, prospect, onMessageSent 
 
   const handleSend = () => {
     startSending(() => {
-        // Dans une vraie application, cela enverrait le message
-        console.log(`Envoi du message à ${prospect.name}: ${message}`);
+        // In a real app, this would send the message
+        console.log(`Sending message to ${prospect.name}: ${message}`);
+        toast({
+            title: "Message envoyé !",
+            description: `Votre message à ${prospect.name} a été envoyé.`
+        });
         onMessageSent();
         onOpenChange(false);
     });

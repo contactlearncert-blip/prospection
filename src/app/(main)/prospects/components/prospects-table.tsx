@@ -30,9 +30,12 @@ import {
     SelectValue,
   } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, ArrowDown, ArrowUp, Send, Mail, MessageCircleReply, ThumbsUp, ThumbsDown, User, Building2, Laptop, ShoppingBag, BookOpen, HeartPulse, Landmark } from 'lucide-react';
+import { MoreHorizontal, ArrowDown, ArrowUp, Send, Mail, MessageCircleReply, ThumbsUp, ThumbsDown, User, Building2, Laptop, ShoppingBag, BookOpen, HeartPulse, Landmark, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { SendMessageDialog } from './send-message-dialog';
+import { useUser } from '@/firebase';
+import { updateProspectStatusAction } from '../actions';
+import { useToast } from '@/hooks/use-toast';
 
 const statusIcons: Record<ProspectStatus, React.ReactNode> = {
     new: <Mail className="size-4" />,
@@ -80,18 +83,36 @@ const getStatusBadgeVariant = (status: ProspectStatus) => {
 
 export function ProspectsTable({ data }: { data: Prospect[] }) {
   const [prospects, setProspects] = useState<Prospect[]>(data);
+  const { user } = useUser();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProspectStatus | 'all'>('all');
   const [industryFilter, setIndustryFilter] = useState<Industry | 'all'>('all');
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  React.useEffect(() => {
+    setProspects(data);
+  }, [data]);
+
   const handleStatusChange = (prospectId: string, newStatus: ProspectStatus) => {
+     if (!user) return;
+    // Optimistic update
     setProspects(prev =>
       prev.map(p =>
         p.id === prospectId ? { ...p, status: newStatus, lastContacted: new Date().toISOString() } : p
       )
     );
+    // Server action
+    updateProspectStatusAction(prospectId, newStatus, user.uid).catch(() => {
+        toast({
+            variant: 'destructive',
+            title: 'Erreur',
+            description: 'Impossible de mettre à jour le statut du prospect.'
+        });
+        // Revert optimistic update
+        setProspects(data);
+    });
   };
 
   const filteredAndSortedProspects = useMemo(() => {
@@ -205,7 +226,14 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredAndSortedProspects.map(prospect => (
+          {filteredAndSortedProspects.length === 0 && !isPending ? (
+            <TableRow>
+              <TableCell colSpan={5} className="h-24 text-center">
+                Aucun prospect trouvé.
+              </TableCell>
+            </TableRow>
+          ) : (
+          filteredAndSortedProspects.map(prospect => (
             <TableRow key={prospect.id}>
               <TableCell>
                 <div className="flex items-center gap-3">
@@ -261,7 +289,7 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
                 </DropdownMenu>
               </TableCell>
             </TableRow>
-          ))}
+          )))}
         </TableBody>
       </Table>
     </div>
