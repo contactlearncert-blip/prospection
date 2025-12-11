@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/sidebar';
 import { LayoutGrid, Users, Settings, LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { Logo } from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -24,15 +25,23 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useUser();
-  const { signOut } = useAuth();
+  const auth = useAuth();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [loading, user, router]);
+
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/login');
+    if(auth) {
+        await auth.signOut();
+        router.push('/login');
+    }
   }
 
-  if (loading) {
+  if (loading || !user) {
     return (
         <div className="flex h-screen w-full">
             <div className="hidden md:flex flex-col gap-4 border-r p-2">
@@ -49,11 +58,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </div>
         </div>
     );
-  }
-
-  if (!user) {
-    router.push('/login');
-    return null;
   }
   
   return (
