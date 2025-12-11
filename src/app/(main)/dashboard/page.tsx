@@ -8,13 +8,13 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       <div className="flex items-center">
-        <h1 className="font-semibold text-lg md:text-2xl">Dashboard</h1>
+        <h1 className="font-semibold text-lg md:text-2xl">Tableau de bord</h1>
       </div>
       <OverviewCards data={prospects} />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
-            <CardTitle>Prospects by Industry</CardTitle>
+            <CardTitle>Prospects par industrie</CardTitle>
           </CardHeader>
           <CardContent>
             <ProspectsByIndustryChart data={prospects} />
@@ -22,7 +22,7 @@ export default function DashboardPage() {
         </Card>
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Prospects by Status</CardTitle>
+            <CardTitle>Prospects par statut</CardTitle>
           </CardHeader>
           <CardContent>
             <ProspectsByStatusChart data={prospects} />

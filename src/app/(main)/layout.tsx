@@ -38,7 +38,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               <SidebarMenuButton asChild>
                 <Link href="/dashboard">
                   <LayoutGrid />
-                  Dashboard
+                  Tableau de bord
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -79,16 +79,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 <DropdownMenuGroup>
                 <DropdownMenuItem>
                     <Users className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                    <span>Profil</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                    <span>Paramètres</span>
                 </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                <span>Log out</span>
+                <span>Se déconnecter</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
             </DropdownMenu>

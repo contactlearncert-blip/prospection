@@ -36,13 +36,13 @@ export function SendMessageDialog({ open, onOpenChange, prospect, onMessageSent 
       generateMessageAction({
         prospectName: prospect.name,
         prospectOnlinePresence: prospect.onlinePresence,
-        serviceOffering: 'a suite of online services to improve web presence and user engagement.',
+        serviceOffering: 'une suite de services en ligne pour améliorer la présence web et l\'engagement des utilisateurs.',
       })
         .then(result => {
           setMessage(result.personalizedMessage);
         })
         .catch(() => {
-          setError('Failed to generate message. You can still write one manually.');
+          setError('Échec de la génération du message. Vous pouvez toujours en écrire un manuellement.');
         })
         .finally(() => {
           setIsLoading(false);
@@ -52,8 +52,8 @@ export function SendMessageDialog({ open, onOpenChange, prospect, onMessageSent 
 
   const handleSend = () => {
     startSending(() => {
-        // In a real app, this would send the message
-        console.log(`Sending message to ${prospect.name}: ${message}`);
+        // Dans une vraie application, cela enverrait le message
+        console.log(`Envoi du message à ${prospect.name}: ${message}`);
         onMessageSent();
         onOpenChange(false);
     });
@@ -64,10 +64,10 @@ export function SendMessageDialog({ open, onOpenChange, prospect, onMessageSent 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="text-primary" /> Personalize Message
+            <Sparkles className="text-primary" /> Personnaliser le message
           </DialogTitle>
           <DialogDescription>
-            AI-generated message for {prospect.name}. Feel free to edit it.
+            Message généré par l'IA pour {prospect.name}. N'hésitez pas à le modifier.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
@@ -80,16 +80,16 @@ export function SendMessageDialog({ open, onOpenChange, prospect, onMessageSent 
               value={message}
               onChange={e => setMessage(e.target.value)}
               rows={8}
-              placeholder="Write your message..."
+              placeholder="Écrivez votre message..."
             />
           )}
           {error && <p className="text-sm text-destructive mt-2">{error}</p>}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
           <Button onClick={handleSend} disabled={isLoading || isSending || !message}>
             {isSending ? <Loader2 className="mr-2 size-4 animate-spin"/> : <Send className="mr-2 size-4"/>}
-            Send Message
+            Envoyer le message
           </Button>
         </DialogFooter>
       </DialogContent>

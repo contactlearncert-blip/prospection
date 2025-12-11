@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +40,14 @@ const statusIcons: Record<ProspectStatus, React.ReactNode> = {
     replied: <MessageCircleReply className="size-4" />,
     interested: <ThumbsUp className="size-4" />,
     not_interested: <ThumbsDown className="size-4" />,
+};
+
+const statusTranslations: Record<ProspectStatus, string> = {
+  new: 'Nouveau',
+  contacted: 'Contacté',
+  replied: 'A répondu',
+  interested: 'Intéressé',
+  not_interested: 'Pas intéressé',
 };
 
 const industryIcons: Record<Industry, React.ReactNode> = {
@@ -144,7 +153,7 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
     <>
     <div className="flex flex-col sm:flex-row items-center gap-2 mb-4">
         <Input 
-            placeholder="Search by name or company..."
+            placeholder="Rechercher par nom ou entreprise..."
             value={searchTerm}
             onChange={e => startTransition(() => setSearchTerm(e.target.value))}
             className="max-w-sm"
@@ -152,23 +161,21 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
         <div className="flex gap-2 w-full sm:w-auto">
         <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
             <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder="Filtrer par statut" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="new">New</SelectItem>
-                <SelectItem value="contacted">Contacted</SelectItem>
-                <SelectItem value="replied">Replied</SelectItem>
-                <SelectItem value="interested">Interested</SelectItem>
-                <SelectItem value="not_interested">Not Interested</SelectItem>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                {Object.entries(statusTranslations).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>{value}</SelectItem>
+                ))}
             </SelectContent>
         </Select>
         <Select value={industryFilter} onValueChange={(value) => setIndustryFilter(value as any)}>
             <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filter by industry" />
+                <SelectValue placeholder="Filtrer par industrie" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="all">All Industries</SelectItem>
+                <SelectItem value="all">Toutes les industries</SelectItem>
                 {industries.map(industry => (
                     <SelectItem key={industry} value={industry}>{industry}</SelectItem>
                 ))}
@@ -184,13 +191,13 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
                 <div className="flex items-center cursor-pointer">Prospect {getSortIcon('name')}</div>
             </TableHead>
             <TableHead onClick={() => requestSort('industry')}>
-                <div className="flex items-center cursor-pointer">Industry {getSortIcon('industry')}</div>
+                <div className="flex items-center cursor-pointer">Industrie {getSortIcon('industry')}</div>
             </TableHead>
             <TableHead onClick={() => requestSort('status')}>
-                <div className="flex items-center cursor-pointer">Status {getSortIcon('status')}</div>
+                <div className="flex items-center cursor-pointer">Statut {getSortIcon('status')}</div>
             </TableHead>
             <TableHead onClick={() => requestSort('lastContacted')}>
-                <div className="flex items-center cursor-pointer">Last Contacted {getSortIcon('lastContacted')}</div>
+                <div className="flex items-center cursor-pointer">Dernier contact {getSortIcon('lastContacted')}</div>
             </TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
@@ -220,19 +227,19 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
               </TableCell>
               <TableCell>
                 <Badge variant={getStatusBadgeVariant(prospect.status)} className="capitalize">
-                    {prospect.status.replace('_', ' ')}
+                    {statusTranslations[prospect.status]}
                 </Badge>
               </TableCell>
               <TableCell>
                 {prospect.lastContacted
-                  ? formatDistanceToNow(new Date(prospect.lastContacted), { addSuffix: true })
+                  ? formatDistanceToNow(new Date(prospect.lastContacted), { addSuffix: true, locale: fr })
                   : 'N/A'}
               </TableCell>
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
+                      <span className="sr-only">Ouvrir le menu</span>
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -240,14 +247,14 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => handleSendMessageClick(prospect)}>
                         <Send className="mr-2 size-4" />
-                        Personalize Message
+                        Personnaliser le message
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+                    <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
                     {Object.keys(statusIcons).map(status => (
                         <DropdownMenuItem key={status} onClick={() => handleStatusChange(prospect.id, status as ProspectStatus)}>
                             {statusIcons[status as ProspectStatus]}
-                            <span className="ml-2 capitalize">{status.replace('_', ' ')}</span>
+                            <span className="ml-2 capitalize">{statusTranslations[status as ProspectStatus]}</span>
                         </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>

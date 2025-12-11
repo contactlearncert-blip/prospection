@@ -1,6 +1,6 @@
 'use client';
 import { useMemo } from 'react';
-import type { Prospect } from '@/lib/types';
+import type { Prospect, ProspectStatus } from '@/lib/types';
 import {
   ChartContainer,
   ChartTooltip,
@@ -23,6 +23,15 @@ const statusColors: { [key: string]: string } = {
   not_interested: 'hsl(var(--chart-5))',
 };
 
+const statusTranslations: Record<ProspectStatus, string> = {
+  new: 'Nouveau',
+  contacted: 'Contacté',
+  replied: 'A répondu',
+  interested: 'Intéressé',
+  not_interested: 'Pas intéressé',
+};
+
+
 export function ProspectsByStatusChart({ data }: ProspectsByStatusChartProps) {
   const chartData = useMemo(() => {
     const statusCounts = data.reduce((acc, prospect) => {
@@ -31,7 +40,7 @@ export function ProspectsByStatusChart({ data }: ProspectsByStatusChartProps) {
     }, {} as { [key: string]: number });
 
     return Object.entries(statusCounts).map(([status, count]) => ({
-      status: status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      status: statusTranslations[status as ProspectStatus] || status,
       count,
       fill: statusColors[status] || '#ccc',
     }));

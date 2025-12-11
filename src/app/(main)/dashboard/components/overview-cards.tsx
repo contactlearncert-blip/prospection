@@ -24,42 +24,42 @@ export function OverviewCards({ data }: OverviewCardsProps) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Prospects</CardTitle>
+          <CardTitle className="text-sm font-medium">Total des prospects</CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{totalProspects}</div>
-          <p className="text-xs text-muted-foreground">All prospects in your pipeline</p>
+          <p className="text-xs text-muted-foreground">Tous les prospects de votre pipeline</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">New Prospects</CardTitle>
+          <CardTitle className="text-sm font-medium">Nouveaux prospects</CardTitle>
           <Mail className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{newProspects}</div>
-          <p className="text-xs text-muted-foreground">Leads that need to be contacted</p>
+          <p className="text-xs text-muted-foreground">Pistes qui doivent être contactées</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Interested</CardTitle>
+          <CardTitle className="text-sm font-medium">Intéressés</CardTitle>
           <ThumbsUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{interestedProspects}</div>
-          <p className="text-xs text-muted-foreground">Prospects that showed interest</p>
+          <p className="text-xs text-muted-foreground">Prospects qui ont montré de l'intérêt</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+          <CardTitle className="text-sm font-medium">Taux de conversion</CardTitle>
           <Percent className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{conversionRate}%</div>
-          <p className="text-xs text-muted-foreground">From contacted to interested</p>
+          <p className="text-xs text-muted-foreground">De contacté à intéressé</p>
         </CardContent>
       </Card>
     </div>
