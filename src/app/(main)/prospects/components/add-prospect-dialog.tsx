@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -113,10 +114,10 @@ export function AddProspectDialog() {
   };
 
   const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
     if (!isOpen) {
       setTimeout(resetState, 300); // Delay to allow animation
     }
-    setOpen(isOpen);
   };
   
   return (
