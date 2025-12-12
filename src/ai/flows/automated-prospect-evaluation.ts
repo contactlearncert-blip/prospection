@@ -10,12 +10,34 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const fetchUrlContent = ai.defineTool(
+  {
+    name: 'fetchUrlContent',
+    description: 'Fetches the text content of a given URL.',
+    inputSchema: z.object({url: z.string().url()}),
+    outputSchema: z.string(),
+  },
+  async ({url}) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        return `Error fetching URL content: ${response.statusText}`;
+      }
+      // This is a simplified version. A real implementation would parse the HTML.
+      return await response.text();
+    } catch (e: any) {
+      return `Error: ${e.message}`;
+    }
+  }
+);
+
+
 const EvaluateProspectInputSchema = z.object({
   industry: z.string().describe('The industry of the potential lead.'),
   onlinePresence: z
     .string()
     .describe(
-      'A description of the potential lead\'s online presence, including website, social media, and other relevant online activities.'
+      'A description of the potential lead\'s online presence. This can be a URL to their website or social media, or a text description.'
     ),
 });
 export type EvaluateProspectInput = z.infer<typeof EvaluateProspectInputSchema>;
@@ -44,9 +66,12 @@ const prompt = ai.definePrompt({
   name: 'evaluateProspectPrompt',
   input: {schema: EvaluateProspectInputSchema},
   output: {schema: EvaluateProspectOutputSchema},
+  tools: [fetchUrlContent],
   prompt: `You are an expert sales professional specializing in evaluating potential leads for online service providers.
 
 You will use the provided information to determine if the potential lead is a good fit for an online service provider.
+
+If the online presence information is a URL, use the 'fetchUrlContent' tool to get the content of the website to inform your evaluation.
 
 Industry: {{{industry}}}
 Online Presence: {{{onlinePresence}}}
