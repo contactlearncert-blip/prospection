@@ -187,7 +187,7 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
             className="max-w-sm"
         />
         <div className="flex gap-2 w-full sm:w-auto">
-        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+        <Select value={statusFilter} onValueChange={(value) => startTransition(() => setStatusFilter(value as any))}>
             <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filtrer par statut" />
             </SelectTrigger>
@@ -198,7 +198,7 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
                 ))}
             </SelectContent>
         </Select>
-        <Select value={industryFilter} onValueChange={(value) => setIndustryFilter(value as any)}>
+        <Select value={industryFilter} onValueChange={(value) => startTransition(() => setIndustryFilter(value as any))}>
             <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filtrer par industrie" />
             </SelectTrigger>
