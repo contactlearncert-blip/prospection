@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -13,7 +11,6 @@ import { FirebaseError } from 'firebase/app';
 import { Logo } from '@/components/logo';
 import { doc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { Separator } from '@/components/ui/separator';
 import type { UserCredential } from 'firebase/auth';
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -67,9 +64,6 @@ export default function SignupPage() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handlePostSignUp = async (userCredential: UserCredential, nameOverride?: string) => {
@@ -112,28 +106,6 @@ export default function SignupPage() {
     });
   }
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password.length < 6) {
-        toast({
-            variant: "destructive",
-            title: "Mot de passe trop court",
-            description: "Le mot de passe doit contenir au moins 6 caractères.",
-        });
-        return;
-    }
-    setLoading(true);
-    try {
-      const userCredential = await auth.signUp(email, password);
-      await handlePostSignUp(userCredential, name);
-    } catch (error) {
-        console.error(error);
-        handleAuthError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSocialSignUp = async (provider: 'google' | 'apple') => {
     setLoading(true);
     try {
@@ -158,55 +130,13 @@ export default function SignupPage() {
         <CardHeader className="items-center">
           <Logo className="mb-2" />
           <CardTitle>Créer un compte</CardTitle>
-          <CardDescription>Entrez vos informations pour commencer</CardDescription>
+          <CardDescription>Rejoignez-nous en un clic</CardDescription>
         </CardHeader>
         <CardContent>
             <div className="grid gap-4">
                 <Button variant="outline" onClick={() => handleSocialSignUp('google')} disabled={loading}><GoogleIcon className="mr-2"/> S'inscrire avec Google</Button>
                 <Button variant="outline" onClick={() => handleSocialSignUp('apple')} disabled={loading}><AppleIcon className="mr-2"/> S'inscrire avec Apple</Button>
             </div>
-            <Separator className="my-4">ou</Separator>
-            <form onSubmit={handleSignUp}>
-                <div className="grid gap-4">
-                <div className="grid gap-2">
-                    <Label htmlFor="name">Nom</Label>
-                    <Input 
-                        id="name" 
-                        placeholder="John Doe" 
-                        required 
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        disabled={loading}
-                    />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                    id="email"
-                    type="email"
-                    placeholder="nom@exemple.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                    />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="password">Mot de passe</Label>
-                    <Input 
-                        id="password" 
-                        type="password" 
-                        required 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={loading}
-                    />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Création...' : 'Créer le compte'}
-                </Button>
-                </div>
-            </form>
             <div className="mt-4 text-center text-sm">
                 Vous avez déjà un compte ?{' '}
                 <Link href="/login" className="underline">
