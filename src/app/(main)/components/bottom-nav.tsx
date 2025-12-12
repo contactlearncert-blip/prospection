@@ -58,11 +58,11 @@ export function BottomNav({ user, onSignOut }: BottomNavProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                <DropdownMenuItem disabled>
+                <DropdownMenuItem>
                     <Users className="mr-2 h-4 w-4" />
                     <span>Profil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled>
+                <DropdownMenuItem>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Paramètres</span>
                 </DropdownMenuItem>
