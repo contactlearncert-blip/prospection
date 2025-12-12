@@ -7,8 +7,8 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarProvider,
   SidebarTrigger,
+  SidebarProvider,
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { LayoutGrid, Users, Settings, LogOut } from 'lucide-react';
