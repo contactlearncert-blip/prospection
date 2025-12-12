@@ -13,18 +13,33 @@ import {z} from 'genkit';
 const fetchUrlContent = ai.defineTool(
   {
     name: 'fetchUrlContent',
-    description: 'Fetches the text content of a given URL.',
+    description: 'Fetches the clean, human-readable text content of a given URL. Ideal for analyzing websites.',
     inputSchema: z.object({url: z.string().url()}),
     outputSchema: z.string(),
   },
   async ({url}) => {
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        return `Error fetching URL content: ${response.statusText}`;
+      // Using a third-party service to scrape the website reliably.
+      const scrapingResponse = await fetch(`https://r.jina.ai/${url}`, {
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+
+      if (!scrapingResponse.ok) {
+        // Fallback for simple fetch if Jina fails
+        const fallbackResponse = await fetch(url);
+        if (!fallbackResponse.ok) {
+            return `Error: Failed to fetch URL content with status: ${fallbackResponse.statusText}`;
+        }
+        const text = await fallbackResponse.text();
+        // Basic HTML tag stripping
+        return text.replace(/<[^>]*>/g, ' ').replace(/\s\s+/g, ' ').trim();
       }
-      // This is a simplified version. A real implementation would parse the HTML.
-      return await response.text();
+
+      const jsonData = await scrapingResponse.json();
+      return jsonData.data.content;
+
     } catch (e: any) {
       return `Error: ${e.message}`;
     }
