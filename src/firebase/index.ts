@@ -6,6 +6,9 @@ import {
   type Auth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  OAuthProvider,
   signOut as firebaseSignOut,
 } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
@@ -31,6 +34,14 @@ export function initializeFirebase(): {
     signUp: createUserWithEmailAndPassword,
     signIn: signInWithEmailAndPassword,
     signOut: () => firebaseSignOut(auth),
+    signInWithGoogle: () => {
+        const provider = new GoogleAuthProvider();
+        return signInWithPopup(auth, provider);
+    },
+    signInWithApple: () => {
+        const provider = new OAuthProvider('apple.com');
+        return signInWithPopup(auth, provider);
+    }
   });
 
 
@@ -50,5 +61,7 @@ declare module 'firebase/auth' {
         signUp: typeof createUserWithEmailAndPassword;
         signIn: typeof signInWithEmailAndPassword;
         signOut: () => Promise<void>;
+        signInWithGoogle: () => Promise<any>;
+        signInWithApple: () => Promise<any>;
     }
 }
