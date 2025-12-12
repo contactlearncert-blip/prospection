@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type {
   FirestoreError,
   Query,
@@ -26,7 +26,7 @@ export function useCollection<T>(query: Query<T> | null) {
       query,
       (snapshot: QuerySnapshot<DocumentData>) => {
         const docs = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() } as unknown as T)
+          (doc) => ({ ...doc.data(), id: doc.id } as unknown as T)
         );
         setData(docs);
         setLoading(false);
@@ -40,7 +40,8 @@ export function useCollection<T>(query: Query<T> | null) {
     );
 
     return () => unsubscribe();
-  }, [query]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query?.path]);
 
   return { data, loading, error };
 }

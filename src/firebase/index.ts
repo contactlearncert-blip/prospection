@@ -48,7 +48,7 @@ export function initializeFirebase(): {
   return { firebaseApp: app, auth, firestore };
 }
 
-export function useMemoFirebase<T>(
+export function useMemoFirebase(
   createQuery: () => Query<DocumentData> | null,
   deps: any[]
 ): Query<DocumentData> | null {

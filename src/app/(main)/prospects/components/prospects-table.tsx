@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useTransition } from 'react';
+import { useState, useMemo, useTransition, useEffect } from 'react';
 import type { Prospect, ProspectStatus, Industry } from '@/lib/types';
 import { industries } from '@/lib/types';
 import {
@@ -30,11 +30,11 @@ import {
     SelectValue,
   } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, ArrowDown, ArrowUp, Send, Mail, MessageCircleReply, ThumbsUp, ThumbsDown, User, Building2, Laptop, ShoppingBag, BookOpen, HeartPulse, Landmark, Loader2 } from 'lucide-react';
+import { MoreHorizontal, ArrowDown, ArrowUp, Send, Mail, MessageCircleReply, ThumbsUp, ThumbsDown, Laptop, HeartPulse, Landmark, ShoppingBag, BookOpen, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { SendMessageDialog } from './send-message-dialog';
-import { useUser } from '@/firebase';
-import { updateProspectStatusAction } from '../actions';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 const statusIcons: Record<ProspectStatus, React.ReactNode> = {
@@ -84,6 +84,7 @@ const getStatusBadgeVariant = (status: ProspectStatus) => {
 export function ProspectsTable({ data }: { data: Prospect[] }) {
   const [prospects, setProspects] = useState<Prospect[]>(data);
   const { user } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProspectStatus | 'all'>('all');
@@ -91,27 +92,33 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  React.useEffect(() => {
+  useEffect(() => {
     setProspects(data);
   }, [data]);
 
   const handleStatusChange = (prospectId: string, newStatus: ProspectStatus) => {
-     if (!user) return;
+     if (!user || !firestore) return;
+    
+    const originalProspects = prospects;
     // Optimistic update
     setProspects(prev =>
       prev.map(p =>
         p.id === prospectId ? { ...p, status: newStatus, lastContacted: new Date().toISOString() } : p
       )
     );
-    // Server action
-    updateProspectStatusAction(prospectId, newStatus, user.uid).catch(() => {
+    
+    const prospectRef = doc(firestore, `users/${user.uid}/prospects/${prospectId}`);
+    updateDoc(prospectRef, {
+        status: newStatus,
+        lastContacted: new Date().toISOString(),
+    }).catch(() => {
         toast({
             variant: 'destructive',
             title: 'Erreur',
             description: 'Impossible de mettre à jour le statut du prospect.'
         });
         // Revert optimistic update
-        setProspects(data);
+        setProspects(originalProspects);
     });
   };
 
@@ -226,70 +233,71 @@ export function ProspectsTable({ data }: { data: Prospect[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredAndSortedProspects.length === 0 && !isPending ? (
+          {(isPending || filteredAndSortedProspects.length > 0) ? (
+            filteredAndSortedProspects.map(prospect => (
+              <TableRow key={prospect.id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={prospect.avatar} alt={prospect.name} data-ai-hint="person" />
+                      <AvatarFallback>{prospect.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium">{prospect.name}</div>
+                      <div className="text-sm text-muted-foreground">{prospect.company}</div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                      {industryIcons[prospect.industry]}
+                      {prospect.industry}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={getStatusBadgeVariant(prospect.status)} className="capitalize">
+                      {statusTranslations[prospect.status]}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {prospect.lastContacted
+                    ? formatDistanceToNow(new Date(prospect.lastContacted), { addSuffix: true, locale: fr })
+                    : 'N/A'}
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Ouvrir le menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => handleSendMessageClick(prospect)}>
+                          <Send className="mr-2 size-4" />
+                          Personnaliser le message
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
+                      {Object.keys(statusIcons).map(status => (
+                          <DropdownMenuItem key={status} onClick={() => handleStatusChange(prospect.id, status as ProspectStatus)}>
+                              {statusIcons[status as ProspectStatus]}
+                              <span className="ml-2 capitalize">{statusTranslations[status as ProspectStatus]}</span>
+                          </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
             <TableRow>
               <TableCell colSpan={5} className="h-24 text-center">
-                Aucun prospect trouvé.
+                Aucun prospect trouvé. Commencez par en ajouter un !
               </TableCell>
             </TableRow>
-          ) : (
-          filteredAndSortedProspects.map(prospect => (
-            <TableRow key={prospect.id}>
-              <TableCell>
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src={prospect.avatar} alt={prospect.name} data-ai-hint="person" />
-                    <AvatarFallback>{prospect.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">{prospect.name}</div>
-                    <div className="text-sm text-muted-foreground">{prospect.company}</div>
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                    {industryIcons[prospect.industry]}
-                    {prospect.industry}
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant={getStatusBadgeVariant(prospect.status)} className="capitalize">
-                    {statusTranslations[prospect.status]}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {prospect.lastContacted
-                  ? formatDistanceToNow(new Date(prospect.lastContacted), { addSuffix: true, locale: fr })
-                  : 'N/A'}
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Ouvrir le menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => handleSendMessageClick(prospect)}>
-                        <Send className="mr-2 size-4" />
-                        Personnaliser le message
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
-                    {Object.keys(statusIcons).map(status => (
-                        <DropdownMenuItem key={status} onClick={() => handleStatusChange(prospect.id, status as ProspectStatus)}>
-                            {statusIcons[status as ProspectStatus]}
-                            <span className="ml-2 capitalize">{statusTranslations[status as ProspectStatus]}</span>
-                        </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          )))}
+          )}
         </TableBody>
       </Table>
     </div>

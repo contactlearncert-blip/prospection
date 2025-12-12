@@ -14,17 +14,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, UserPlus, FileSearch, Loader2, Frown, Sparkles } from 'lucide-react';
-import { evaluateProspectAction, addProspectAction } from '../actions';
+import { evaluateProspectAction } from '../actions';
 import type { EvaluateProspectOutput } from '@/ai/flows/automated-prospect-evaluation';
 import { industries, type Industry } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { addDoc, collection } from 'firebase/firestore';
 
 type Step = 'initial' | 'loading' | 'result' | 'form';
 
 export function AddProspectDialog() {
   const { user } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>('initial');
@@ -58,7 +60,7 @@ export function AddProspectDialog() {
   };
 
   const handleSaveProspect = async () => {
-    if (!user || !name || !company || !email) {
+    if (!user || !name || !company || !email || !firestore || !industry) {
         toast({
             variant: "destructive",
             title: "Champs requis",
@@ -68,15 +70,20 @@ export function AddProspectDialog() {
     }
     setIsSaving(true);
     try {
-        await addProspectAction({
+        const prospectCollection = collection(firestore, `users/${user.uid}/prospects`);
+        const newProspect = {
             name,
             company,
             contact: { email },
             industry,
             onlinePresence,
             avatar: `https://picsum.photos/seed/${Math.random()}/100/100`, // Placeholder
-        }, user.uid);
-
+            userId: user.uid,
+            status: 'new',
+            lastContacted: null,
+        }
+        const docRef = await addDoc(prospectCollection, newProspect);
+        
         toast({
             title: "Prospect ajouté",
             description: `${name} a été ajouté à votre liste.`,
@@ -102,11 +109,12 @@ export function AddProspectDialog() {
     setName('');
     setCompany('');
     setEmail('');
+    setIsSaving(false);
   };
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
-      resetState();
+      setTimeout(resetState, 300); // Delay to allow animation
     }
     setOpen(isOpen);
   };
